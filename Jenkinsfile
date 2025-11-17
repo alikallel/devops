@@ -49,8 +49,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
-                        kubectl --kubeconfig=\$KUBECONFIG apply -f deployment.yaml
-                        kubectl --kubeconfig=\$KUBECONFIG apply -f service.yaml
+                        kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f deployment.yaml
+                        kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f service.yaml
                     """
                 }
             }

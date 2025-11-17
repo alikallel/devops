@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "alikallel/mon-app:latest"
+        HELM_CHART_PATH = "mon-app"
     }
 
     stages {
@@ -17,12 +18,13 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
-                        usernameVariable: 'DOCKER_USERNAME', 
+                        usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD')]) {
 
-                        sh 'docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"'
-
-                        sh 'docker build -t alikallel/mon-app:latest .'
+                        sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker build -t alikallel/mon-app:latest .
+                        '''
                     }
                 }
             }
@@ -30,29 +32,28 @@ pipeline {
 
         stage('Pousser image Docker') {
             steps {
-                withCredentials([
-                   usernamePassword(
-                      credentialsId: 'dockerhub-creds',
-                      usernameVariable: 'DOCKER_USERNAME',
-                      passwordVariable: 'DOCKER_PASSWORD'
-                   )
-                ]) {
-                    sh """
-                        echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                        docker push ${DOCKER_IMAGE}
-                    """
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', 
+                        usernameVariable: 'DOCKER_USERNAME', 
+                        passwordVariable: 'DOCKER_PASSWORD')]) {
+
+                        sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push alikallel/mon-app:latest
+                        '''
+                    }
                 }
             }
         }
 
-        stage('Déployer sur Kubernetes') {
+        stage('Déployer avec Helm') {
             steps {
-                sh """
-                    kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f deployment.yaml
-                    kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f service.yaml
-                """
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh '''
+                    helm upgrade --install mon-app ./mon-app --kubeconfig $KUBECONFIG
+                    '''
+                }
             }
         }
-
     }
 }

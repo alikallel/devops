@@ -46,14 +46,10 @@ pipeline {
         }
 
         stage('Déployer sur Kubernetes') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh """
-                        kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f deployment.yaml
-                        kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f service.yaml
-                    """
-                }
-            }
-        }
+    steps {
+        sh """
+            kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f deployment.yaml
+            kubectl --kubeconfig=/var/jenkins_home/.kube/config apply -f service.yaml
+        """
     }
 }

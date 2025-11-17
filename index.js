@@ -1,5 +1,9 @@
-const http = require('http');
-const server = http.createServer((req,res)=>{
-  res.end("Hello from Kubernetes!");
+const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("TP3 DevOps — Déploiement Kubernetes avec Jenkins");
 });
-server.listen(80);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

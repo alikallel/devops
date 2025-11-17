@@ -46,14 +46,13 @@ pipeline {
             }
         }
 
-        stage('Déployer avec Helm') {
+       stage('Déployer avec Helm') {
             steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh '''
-                    helm upgrade --install mon-app ./mon-app --kubeconfig $KUBECONFIG
-                    '''
-                }
+                sh """
+                    helm upgrade --install mon-app ./mon-app --kubeconfig /var/jenkins_home/.kube/config
+                """
             }
         }
+
     }
 }
